@@ -1,0 +1,46 @@
+.recordControl .btnCtrl {
+	color: rgb(171, 21, 21);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.recordControl {
+	top: 74vh;
+	left: 5vw;
+	max-width: 768px;
+	display: block;
+	z-index: 9999;
+	color: white;
+	display: flex;
+	gap: 40px;
+}
+
+.recordControl .webCam {
+	width: 160px;
+	aspect-ratio: 1/1;
+	border-radius: 164px;
+	background: #e8e8e8;
+	overflow: hidden;
+}
+.recordControl .webCam video {
+	width: 160px;
+	aspect-ratio: 1/1;
+	border-radius: 164px;
+	background: #e2cd13;
+	overflow: hidden;
+}
+
+.recordControl .ctrl {
+	border-radius: 200px;
+	background: #141414;
+	border: 2px solid rgba(98, 98, 98, 0.17);
+	padding: 30px;
+	display: flex;
+	align-items: center;
+	gap: 24px;
+}
+
+.recordControl .ctrlButtons {
+	display: flex;
+}
