@@ -33,131 +33,50 @@ chrome.runtime.onMessage.addListener(
 );
 
 async function startRecording(displayMediaOptions) {
-
-    let mediaRecorder;
-
-start.addEventListener('click', async function(){
-    let stream = await recordScreen();
-    let mimeType = 'video/webm';
-    mediaRecorder = createRecorder(stream, mimeType);
-  let node = document.createElement("p");
-    node.textContent = "Started recording";
-    document.body.appendChild(node);
-})
-
-stop.addEventListener('click', function(){
-    mediaRecorder.stop();
-    let node = document.createElement("p");
-    node.textContent = "Stopped recording";
-    document.body.appendChild(node);
-})
-
-async function recordScreen() {
-    return await navigator.mediaDevices.getDisplayMedia({
-        audio: true, 
-        video: { mediaSource: "screen"}
-    });
-}
-
-function createRecorder (stream, mimeType) {
-  // the stream data is stored in this array
-	let recordedChunks = []; 
-
-	const mediaRecorder = new MediaRecorder(stream);
-
-	mediaRecorder.ondataavailable = function (e) {
+	
+	async function recordScreen() {
+		return await navigator.mediaDevices.getDisplayMedia({
+			audio: true, 
+			video: { mediaSource: "screen"}
+		});
+	}
+	
+	function createRecorder (stream, mimeType) {
+	  // the stream data is stored in this array
+	  let recordedChunks = []; 
+	
+	  const mediaRecorder = new MediaRecorder(stream);
+	
+	  mediaRecorder.ondataavailable = function (e) {
 		if (e.data.size > 0) {
-		recordedChunks.push(e.data);
+		  recordedChunks.push(e.data);
 		}  
-	};
-	mediaRecorder.onstop = function () {
-		saveFile(recordedChunks);
-		recordedChunks = [];
-	};
-	mediaRecorder.start(200); // For every 200ms the stream data will be stored in a separate chunk.
-	return mediaRecorder;
+	  };
+	  mediaRecorder.onstop = function () {
+		 saveFile(recordedChunks);
+		 recordedChunks = [];
+	  };
+	  mediaRecorder.start(200); // For every 200ms the stream data will be stored in a separate chunk.
+	  return mediaRecorder;
 	}
 
 	function saveFile(recordedChunks){
 
-	const blob = new Blob(recordedChunks, {
-		type: 'video/webm'
-		});
-		let filename = window.prompt('Enter file name'),
-			downloadLink = document.createElement('a');
-		downloadLink.href = URL.createObjectURL(blob);
-		downloadLink.download = `${filename}.webm`;
-
-		document.body.appendChild(downloadLink);
-		downloadLink.click();
-		URL.revokeObjectURL(blob); // clear from memory
-		document.body.removeChild(downloadLink);
-	}
-	
-	let startTime = 0;
-	let paused = true;
-	let elapsedTime = 0;
-	let timerId = null;
-	const timerElement = document.getElementById("timer");
-
-	function startTimer() {
-		if (paused) {
-			startTime = Date.now() - elapsedTime;
-			paused = false;
-			updateTime();
-		}
+		const blob = new Blob(recordedChunks, {
+		   type: 'video/webm'
+		 });
+		 let filename = window.prompt('Enter file name'),
+			 downloadLink = document.createElement('a');
+		 downloadLink.href = URL.createObjectURL(blob);
+		 downloadLink.download = `${filename}.webm`;
+	 
+		 document.body.appendChild(downloadLink);
+		 downloadLink.click();
+		 URL.revokeObjectURL(blob); // clear from memory
+		 document.body.removeChild(downloadLink);
 	}
 
-	function pauseTimer() {
-		if (!paused) {
-			cancelAnimationFrame(timerId);
-			paused = true;
-		}
-	}
-
-	function resetTimer() {
-		startTime = 0;
-		elapsedTime = 0;
-		updateTime();
-	}
-
-	function updateTime() {
-		const currentTime = Date.now();
-		elapsedTime = currentTime - startTime;
-		const minutes = Math.floor(elapsedTime / 60000);
-		const seconds = Math.floor((elapsedTime % 60000) / 1000);
-		timerElement.textContent = `${minutes
-			.toString()
-			.padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-
-		if (!paused) {
-			timerId = requestAnimationFrame(updateTime);
-		}
-	}
-
-	let mediaRecorder,
-		recordedBlobs = [],
-		chunkSize = 224 * 224;
-	// DOM Creation
 	async function createDOM(stream) {
-		
-		const recorder = new MediaRecorder(stream);
-
-		recorder.start();
-		recorder.addEventListener("dataavailable", (event) => {
-			const dataBlob = event.data;
-			const totalSize = dataBlob.size;
-			let start = 0;
-
-			while (start < totalSize) {
-				const end = Math.min(start + chunkSize, totalSize);
-				const chunkBlob = dataBlob.slice(start, end);
-				recordedBlobs.push(chunkBlob);
-				start = end;
-				console.log(recordedBlobs);
-			}
-			console.log(recordedBlobs);
-		});
 
 		console.log(stream, "Stream");
 		const navUI = `<div class="webCam">
@@ -295,10 +214,10 @@ function createRecorder (stream, mimeType) {
 		<rect x="0.5" y="0.5" width="43" height="43" rx="21.5" stroke="black"/>
 		</svg>
 
-	<p >Stop</p>`;
+	<p>Stop</p>`;
 		Object.assign(stop.style, styleBTN);
 		stop.addEventListener("click", () => {
-			recorder.pause();
+			mediaRecorder.stop();
 			console.log("STOOP");
 		});
 
@@ -321,30 +240,11 @@ function createRecorder (stream, mimeType) {
 		document.body.appendChild(injectElement);
 	}
 
-	const gdmOptions = {
-		video: {
-			displaySurface: "window",
-			
-		},
-		audio: true, 
-		selfBrowserSurface: "exclude",
-		systemAudio: "exclude",
-	};
-
-	const userConstraint = {
-		audio: true,
-		video: {
-			width: 1200,
-			height: 720,
-		},
-	};
-
 	try {
-		const stream = await navigator.mediaDevices.getDisplayMedia(
-			gdmOptions,
-		);
-		console.log(stream, "pass stream");
-		createDOM(stream);
+		let stream = await recordScreen();
+    	let mimeType = 'video/webm';
+    	mediaRecorder = createRecorder(stream, mimeType)
+		createDOM(mediaRecorder);
 	} catch (err) {
 		console.error(`Error: ${err}`);
 	}
